@@ -1367,7 +1367,12 @@ $$('.rb[data-d]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.t).
 function sp(n){[...n.childNodes].forEach(c=>{if(c.nodeType==3){const f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(w=>{if(!w.trim()){f.append(w);return}const o=document.createElement('span');o.className='w';o.innerHTML='<span>'+w+'</span>';f.append(o)});c.replaceWith(f)}else if(c.nodeType==1)sp(c)})}
 $$('[data-s]').forEach(h=>{sp(h);h.querySelectorAll('.w>span').forEach((s,i)=>s.style.transitionDelay=i*70+'ms')});
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.2});
-$$('.rv,.cl,[data-s],.ph').forEach(e=>io.observe(e));
+$$('.rv,[data-s]').forEach(e=>io.observe(e));
+/* .cl / .ph start fully clipped (clip-path:inset(100%)), which makes IntersectionObserver treat them as invisible in Chrome,
+   so they never reveal. Reveal them with a plain position check instead. */
+(function(){let pend=$$('.cl,.ph');if(!pend.length)return;
+ function chk(){const h=innerHeight;pend=pend.filter(e=>{const r=e.getBoundingClientRect();if(r.height&&r.top<h*.85&&r.bottom>0){e.classList.add('in');return false}return true});if(!pend.length)clearInterval(t)}
+ const t=setInterval(chk,120);addEventListener('scroll',chk,{passive:true});chk()})();
 /* hero */
 const sl=$$('.sl'),trk=$('#trk'),dots=$('#dots');let cur=0,tm;
 sl.forEach((_,i)=>{const d=document.createElement('i');d.onclick=()=>go(i);dots.append(d)});
@@ -2187,6 +2192,27 @@ dr.addEventListener('click',function(e){
  var a=[].slice.call(document.querySelectorAll('header nav a')).filter(function(a){return a.textContent.trim().toLowerCase()===n})[0];
  set(false);if(a)setTimeout(function(){a.click()},320);
 });
+})();
+</script>
+<script>
+/* Logo + Home always return to the main home page (from any page), or scroll to top if already there */
+(function(){
+var b=document.body,cur=document.getElementById('cur'),busy=0,PG=['pgc','pgfu','pgpp','pgcd','pgac','pgab'];
+function onSub(){return PG.some(function(c){return b.classList.contains(c)})}
+function top(){try{if(typeof sm!=='undefined'&&sm){tgt=0}else{scrollTo({top:0,behavior:'smooth'})}}catch(e){scrollTo({top:0,behavior:'smooth'})}}
+window.addEventListener('click',function(e){
+ var a=e.target.closest&&e.target.closest('header .logo, header nav a');if(!a)return;
+ var isHome=a.classList.contains('logo')||a.textContent.trim().toLowerCase()==='home';if(!isHome)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(!onSub()){top();return}
+ if(busy)return;busy=1;b.classList.remove('ddo');cur.classList.add('on');
+ setTimeout(function(){
+  PG.forEach(function(c){b.classList.remove(c)});
+  [].forEach.call(document.querySelectorAll('nav a.cur'),function(x){x.classList.remove('cur')});
+  try{scrollTo(0,0);tgt=cs=0}catch(x){}
+  setTimeout(function(){cur.classList.remove('on');busy=0},350);
+ },560);
+},true);
 })();
 </script>
 </body>
